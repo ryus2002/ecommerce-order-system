@@ -10,6 +10,10 @@
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
 
+# 設置默認行為，如果 core.autocrlf 未設置
+* text=auto
+
+# 明確聲明應該標準化的文本文件
 *.php text
 *.css text
 *.js text
@@ -18,6 +22,7 @@ CHANGELOG.md export-ignore
 *.yml text
 *.json text
 
+# 聲明二進制文件，不應進行任何轉換
 *.png binary
 *.jpg binary
 *.gif binary
