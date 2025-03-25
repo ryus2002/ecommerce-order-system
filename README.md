@@ -10,6 +10,7 @@
 
 ## 系統要求
 - PHP >= 8.1
+- PHP Laravel 12
 - Composer
 - MySQL >= 8.0
 - Docker 和 Docker Compose (推薦使用 Laradock)
