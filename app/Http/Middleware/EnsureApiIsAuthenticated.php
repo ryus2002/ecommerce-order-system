@@ -5,8 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-
 class EnsureApiIsAuthenticated extends Middleware
 {
     /**
@@ -22,14 +20,4 @@ class EnsureApiIsAuthenticated extends Middleware
     {
         abort(response()->json(['message' => 'Unauthenticated.'], 401));
     }
-
-    protected $middlewareGroups = [
-        // ...
-        'api' => [
-            EnsureFrontendRequestsAreStateful::class,
-            'throttle:api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ],
-        // ...
-    ];
 }

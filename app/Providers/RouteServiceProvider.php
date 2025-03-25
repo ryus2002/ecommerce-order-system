@@ -26,15 +26,16 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
-        $this->routes(function () {
-            // API 路由
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
-
-            // Web 路由
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
-        });
+        // 在 Laravel 12 中，路由已在 bootstrap/app.php 中注册，此处不再重复注册
+        // $this->routes(function () {
+        //     // API 路由
+        //     Route::middleware('api')
+        //         ->prefix('api')
+        //         ->group(base_path('routes/api.php'));
+        //
+        //     // Web 路由
+        //     Route::middleware('web')
+        //         ->group(base_path('routes/web.php'));
+        // });
     }
 }

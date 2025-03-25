@@ -39,4 +39,12 @@ class Order extends Model
                     ->withPivot('quantity', 'price')
                     ->withTimestamps();
     }
+
+    /**
+     * 訂單包含的訂單項目
+     */
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

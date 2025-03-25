@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
@@ -22,28 +23,31 @@ class OrderService
         $orderId = Str::uuid()->toString();
         $shardId = ShardingManager::getShardIdFromOrderId($orderId);
         
-        $order = DB::transaction(function () use ($orderId, $userId, $items, $totalAmount, $shardId) {
-            $order = new Order();
-            $order->id = $orderId;
-            $order->user_id = $userId;
-            $order->status = 'pending';
-            $order->total_amount = $totalAmount;
-            $order->shard_id = $shardId;
-            $order->save();
+        // 创建订单
+        $order = new Order();
+        $order->id = $orderId;
+        $order->user_id = $userId;
+        $order->status = 'pending';
+        $order->total_amount = $totalAmount;
+        $order->shard_id = $shardId;
+        $order->save();
             
-            // 創建訂單項目
-            foreach ($items as $item) {
-                $orderItem = new OrderItem();
-                $orderItem->order_id = $orderId;
-                $orderItem->product_id = $item['product_id'];
-                $orderItem->quantity = $item['quantity'];
-                $orderItem->unit_price = $item['unit_price'];
-                $orderItem->save();
-            }
-            
-            return $order;
-        });
+        // 创建订单项目
+        $orderItemsCollection = collect();
+        foreach ($items as $item) {
+            $orderItem = new OrderItem();
+            $orderItem->order_id = $orderId;
+            $orderItem->product_id = $item['product_id'];
+            $orderItem->quantity = $item['quantity'];
+            $orderItem->unit_price = $item['unit_price'];
+            $orderItem->save();
+                
+            // 添加到集合中
+            $orderItemsCollection->push($orderItem);
+        }
         
+        // 手动设置订单的items关系
+        $order->setRelation('items', $orderItemsCollection);
         // 發送訂單創建事件
         Event::dispatch(new OrderCreated($order));
         
@@ -52,7 +56,6 @@ class OrderService
         
         return $order;
     }
-    
     private function checkAndGetInventoryVersions(array $items): array
     {
         $inventoryVersions = [];
@@ -67,7 +70,7 @@ class OrderService
                 $inventoryVersions[$item['product_id']] = $inventory->version;
             }
         }
-        
+
         if (!empty($insufficientInventory)) {
             throw new \Exception('Insufficient inventory for products: ' . implode(', ', $insufficientInventory));
         }

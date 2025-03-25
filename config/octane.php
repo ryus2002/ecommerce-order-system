@@ -38,7 +38,7 @@ return [
     |
     */
 
-    'server' => env('OCTANE_SERVER', 'swoole'),
+    'server' => env('OCTANE_SERVER', 'roadrunner'),
 
     /*
     |--------------------------------------------------------------------------
@@ -251,7 +251,7 @@ return [
             'task_worker_num' => env('OCTANE_TASK_WORKERS', 4),
             'max_request' => env('OCTANE_MAX_REQUESTS', 1000),
             'enable_coroutine' => true,
-            'hook_flags' => SWOOLE_HOOK_ALL,
+            'hook_flags' => defined('SWOOLE_HOOK_ALL') ? SWOOLE_HOOK_ALL : 0,
             // 'pool_capacity' => [
             //     'redis' => [
             //         'min' => env('OCTANE_REDIS_POOL_MIN_CONNECTIONS', 10),

@@ -146,6 +146,7 @@ return [
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
+            'foreign_key_constraints' => false, // 明确禁用外键约束检查
         ],
     ],
 

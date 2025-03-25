@@ -12,7 +12,7 @@ use Tests\TestCase;
 use Mockery;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\Order;
-
+use Laravel\Sanctum\Sanctum;
 
 class OrderControllerTest extends TestCase
 {
@@ -29,7 +29,7 @@ class OrderControllerTest extends TestCase
     public function testStoreOrder()
     {
         $user = User::factory()->create();
-        $orderId = 123;
+        $orderId = Str::uuid()->toString(); // 使用UUID作为ID
         
         // 創建一個產品記錄
         $product = \App\Models\Product::factory()->create([
@@ -73,8 +73,10 @@ class OrderControllerTest extends TestCase
             
         $this->app->instance(OrderService::class, $orderService);
         
-        $response = $this->actingAs($user)
-            ->postJson('/api/orders', $orderData);
+        // 使用Sanctum认证，而不是actingAs
+        Sanctum::actingAs($user, ['*']);
+        
+        $response = $this->postJson('/api/orders', $orderData);
         
         $response->assertStatus(201);
         
@@ -86,6 +88,9 @@ class OrderControllerTest extends TestCase
     {
         // 準備測試數據
         $user = User::factory()->create();
+        
+        // 使用Sanctum认证
+        Sanctum::actingAs($user, ['*']);
         
         $orderData = [
             'items' => [
@@ -99,8 +104,7 @@ class OrderControllerTest extends TestCase
         ];
         
         // 發送請求
-        $response = $this->actingAs($user)
-            ->postJson('/api/orders', $orderData);
+        $response = $this->postJson('/api/orders', $orderData);
         
         // 驗證回應
         $response->assertStatus(422)
@@ -111,5 +115,5 @@ class OrderControllerTest extends TestCase
     {
         Mockery::close();
         parent::tearDown();
-    }
+}
 }

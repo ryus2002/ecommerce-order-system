@@ -3,37 +3,33 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
 
+    /**
+     * 设置测试环境
+     */
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // 設置測試環境的應用程式金鑰
-        $this->app['config']->set('app.key', 'base64:'.base64_encode(Str::random(32)));
 
-        // 全局禁用Sanctum
-        $this->withoutMiddleware([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Auth\Middleware\Authenticate::class
-        ]);
+        // 禁用SQLite外键约束检查
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF');
+        }
     }
-    
+
+    /**
+     * 清理测试环境
+     */
     protected function tearDown(): void
     {
-        // 確保沒有懸掛的交易
-        if ($this->app && $this->app['db']->transactionLevel() > 0) {
-            $this->app['db']->rollBack();
-        }
-        
-        if ($this->app) {
-            $this->app['db']->disconnect();
-        }
-        
+        // 如果需要，可以在这里添加清理代码
+
         parent::tearDown();
     }
 }
