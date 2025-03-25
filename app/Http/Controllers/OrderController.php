@@ -27,21 +27,26 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    /**
-     * 创建新订单
-     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
-            'address' => 'nullable|string',
-            'payment_method' => 'nullable|string',
-        ]);
-
+        try {
+            $validated = $request->validate([
+                'items' => 'required|array',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'total_amount' => 'required|numeric|min:0',
+                'address' => 'nullable|string',
+                'payment_method' => 'nullable|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // 明确返回 JSON 错误
+            return response()->json([
+                'message' => '验证失败',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+    
         // 使用订单服务创建订单
         try {
             $order = $this->orderService->createOrder(
@@ -49,7 +54,7 @@ class OrderController extends Controller
                 $validated['items'],
                 $validated['total_amount']
             );
-
+    
             return response()->json([
                 'message' => '订单创建成功',
                 'order' => $order->load('items'),

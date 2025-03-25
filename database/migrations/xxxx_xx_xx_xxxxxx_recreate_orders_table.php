@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -18,10 +19,8 @@ return new class extends Migration
         // 备份订单项目数据
         $orderItems = DB::table('order_items')->get();
         
-        // 删除订单项目表的外键约束
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-        });
+        // 删除订单项目表
+        Schema::dropIfExists('order_items');
         
         // 删除旧表
         Schema::dropIfExists('orders');
@@ -38,10 +37,22 @@ return new class extends Migration
             $table->timestamps();
         });
         
-        // 恢复数据
+        // 重新创建订单项目表
+        Schema::create('order_items', function (Blueprint $table) {
+            $table->id();
+            $table->uuid('order_id');
+            $table->foreignId('product_id')->constrained();
+            $table->integer('quantity');
+            $table->decimal('unit_price', 10, 2);
+            $table->timestamps();
+            
+            $table->foreign('order_id')->references('id')->on('orders');
+        });
+        
+        // 恢复订单数据
         foreach ($orders as $order) {
             $data = [
-                'id' => $order->id ?? \Illuminate\Support\Str::uuid()->toString(),
+                'id' => $order->id ?? Str::uuid()->toString(),
                 'user_id' => $order->user_id,
                 'status' => $order->status ?? 'pending',
                 'created_at' => $order->created_at,
@@ -68,12 +79,7 @@ return new class extends Migration
             DB::table('orders')->insert($data);
         }
         
-        // 重新添加外键约束
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->foreign('order_id')->references('id')->on('orders');
-        });
-        
-        // 恢复订单项目数据（如果需要）
+        // 恢复订单项目数据
         foreach ($orderItems as $item) {
             DB::table('order_items')->insert([
                 'id' => $item->id,
@@ -92,6 +98,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('order_items');
         Schema::dropIfExists('orders');
     }
 };
