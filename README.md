@@ -156,7 +156,7 @@ php artisan db:seed
 ```
 7. 啟動開發服務器
 ```bash
-php artisan serve
+php artisan octane:start --port=8000 --host=0.0.0.0
 ```
 
 ## 使用方法
